@@ -32,8 +32,10 @@ kitchen promote METRIC              # promote best run to the registry
 kitchen ui                          # open MLflow UI in browser
 
 # Experiment variants (edit first, then run)
-python experiments/baseline.py
-python experiments/challenger.py
+# Run as modules so `import experiments...` / `import src...` resolve (the project
+# root must be on sys.path — `python experiments/challenger.py` fails with ModuleNotFoundError).
+python -m experiments.baseline
+python -m experiments.challenger
 
 # Generate Kaggle submission
 kitchen submit
