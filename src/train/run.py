@@ -43,6 +43,10 @@ class StudentHealthTrainer(Trainer):
         cv_folds = params["model"].get("cv_folds")
 
         features = [c for c in df.columns if c != target]
+        # val_* metrics from different validation schemes aren't comparable (OOF is
+        # honest, a single split is optimistic) — tag the run so promotion tooling
+        # and humans compare like with like.
+        mlflow.set_tag("validation_scheme", f"oof-{int(cv_folds)}fold" if cv_folds else "single-split")
         if cv_folds:
             model, y_val, y_pred, y_proba = self._fit_cv(
                 df[features], df[target], p, seed, int(cv_folds)
