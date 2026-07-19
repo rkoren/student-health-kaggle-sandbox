@@ -1,0 +1,87 @@
+# Unified project manifest (menu.yaml) — the single source of truth the platform reads.
+# Drive the whole pipeline with `kitchen menu run`; every `kitchen` command also reads it.
+
+project: student-health
+region: us-east-1
+experiment: student-health
+
+pipeline: [train, evaluate]
+
+recipes:
+  # --- stages (project code) ---
+  features:
+    kind: stage
+    source: src/features/run.py
+  train:
+    kind: stage
+    source: src/train/run.py
+    args: ["--auto-promote"]   # register/compare a champion each run
+  evaluate:
+    kind: stage
+    source: src/evaluate/run.py
+
+  # --- infra (deploy on demand with `recipes apply menu.yaml`; not in the default pipeline) ---
+  student-health-data:
+    kind: s3
+    versioning: true
+  student-health-serve:
+    kind: ecr
+    lambda_access: true
+  student-health-lambda-role:
+    kind: iam_role
+    service: lambda.amazonaws.com
+    policies:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
+  # Serving lambda — uncomment after pushing your first image to the ECR repo above:
+  # student-health-fn:
+  #   kind: lambda
+  #   iam_role: student-health-lambda-role
+  #   ecr_repo: student-health-serve
+  #   source: src/serve/
+  #   memory: 1024
+  #   timeout: 30
+
+data:
+  source: kaggle
+  competition: playground-series-s6e7
+
+submission:
+  id_col: id
+  target_col: health_condition
+  message: student-health v1 (balanced-weight xgb baseline)
+  sample_submission: sample_submission.csv
+
+features:
+  raw_file: train.csv
+  processed_file: features.parquet
+  test_file: test.csv
+
+model:
+  target: health_condition
+  test_size: 0.2
+  random_state: 42
+  xgb:
+    n_estimators: 300
+    max_depth: 6
+    learning_rate: 0.05
+    subsample: 0.8
+    colsample_bytree: 0.8
+
+mlflow:
+  tracking_uri: sqlite:///mlruns.db
+
+run_name: baseline
+metrics_file: metrics.json
+
+thresholds:
+  # Primary metric = the competition metric (balanced accuracy). First key drives the
+  # leaderboard + --auto-promote; the bound sits above the 0.333 three-class chance floor.
+  val_balanced_accuracy: 0.4
+
+# ci:                       # optional: CI behavior knobs (read by the scaffolded workflow)
+#   auto_submit: false      # submit to Kaggle after evaluate on a main-branch push
+#   fail_on_threshold: true # whether a threshold breach fails the CI job
+#   notifications:
+#     slack_webhook_secret: SLACK_WEBHOOK_URL  # GH secret holding the incoming-webhook URL
+#     when: failure         # failure | success | always
