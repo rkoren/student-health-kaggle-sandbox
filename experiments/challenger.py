@@ -22,9 +22,11 @@ def challenger(params_file: str = "menu.yaml") -> None:
     with open(params_file) as f:
         params = yaml.safe_load(f)
 
-    # TODO: Override params for the challenger approach, e.g.:
-    # params["model"]["max_depth"] = 8
-    # params["model"]["learning_rate"] = 0.01
+    # Challenger: 5-fold CV for an honest OOF metric, champion refit on 100% of rows.
+    # 300 fixed rounds won the OOF checkpoint sweep (0.94981); early stopping on
+    # weighted mlogloss quits ~90 rounds in and scores worse, so leave it off.
+    params["model"]["cv_folds"] = 5
+    params["model"]["xgb"].update(n_estimators=300)
 
     run_variant(params, VARIANT)
 

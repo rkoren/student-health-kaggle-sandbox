@@ -49,7 +49,7 @@ data:
 submission:
   id_col: id
   target_col: health_condition
-  message: student-health v1 (balanced-weight xgb baseline)
+  message: student-health v2 (5-fold CV xgb 300r, full-data refit)
   sample_submission: sample_submission.csv
 
 features:
@@ -61,6 +61,7 @@ model:
   target: health_condition
   test_size: 0.2
   random_state: 42
+  cv_folds: 5   # OOF val metrics + full-data champion refit (unset → single 80/20 split)
   xgb:
     n_estimators: 300
     max_depth: 6
