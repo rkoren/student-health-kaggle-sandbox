@@ -55,7 +55,7 @@ jobs:
           cache: pip
 
       - name: Install kitchen
-        run: pip install "kitchen @ git+https://github.com/rkoren/kitchen-platform#subdirectory=kitchen"
+        run: pip install rkoren-kitchen
 
       - name: Install project
         run: pip install -e ".[dev]"
@@ -192,7 +192,7 @@ jobs:
           cache: pip
 
       - name: Install kitchen
-        run: pip install "kitchen @ git+https://github.com/rkoren/kitchen-platform#subdirectory=kitchen"
+        run: pip install rkoren-kitchen
 
       - name: Fetch results branch
         run: git fetch origin results:results 2>/dev/null || true
