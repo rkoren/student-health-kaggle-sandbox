@@ -68,8 +68,6 @@ jobs:
           mkdir -p ~/.kaggle
           printf '{"username":"%s","key":"%s"}' '${{ secrets.KAGGLE_USERNAME }}' '${{ secrets.KAGGLE_KEY }}' > ~/.kaggle/kaggle.json
           chmod 600 ~/.kaggle/kaggle.json
-          # DEBUG (temporary): prove the secret arrives intact — compare to the local key sha256.
-          python -c "import json,hashlib; k=json.load(open('$HOME/.kaggle/kaggle.json'))['key']; print('CI key sha256:', hashlib.sha256(k.encode()).hexdigest(), 'len:', len(k))"
           kitchen ingest
 
       # Persistent backend only: resolve MLFLOW_TRACKING_URI from the secrets manifest into
